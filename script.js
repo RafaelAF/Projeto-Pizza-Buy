@@ -1,4 +1,6 @@
 let modalQt = 1;
+let cart = [];
+let modalKey = 0;
 
 
 
@@ -18,6 +20,7 @@ pizzaJson.map((item, index)=>{
         e.preventDefault(); // Prevenir a atualização padrão da tela
         let key = e.target.closest('.pizza-item').getAttribute('data-key');
         modalQt = 1;
+        modalKey = key;
         //console.log(pizzaJson[key].name)
 
         c('.pizzaBig img').src = pizzaJson[key].img;
@@ -76,3 +79,120 @@ cs('.pizzaInfo--size').forEach((size, sizeIndex)=>{
         size.classList.add('selected');
     })
 })
+
+c('.menu-openner').addEventListener('click', ()=>{
+    if(cart.length > 0){
+        c('aside').style.left = '0';
+
+    }
+})
+c('.menu-closer').addEventListener('click', ()=>{
+    c('aside').style.left = '100vw';
+})
+
+c('.pizzaInfo--addButton').addEventListener('click', ()=>{
+    
+    let size = parseInt(c('.pizzaInfo--size.selected').getAttribute('data-key'));
+
+    let identifier = pizzaJson[modalKey].id+'@'+size;
+    let key = cart.findIndex((item)=>item.identifier == identifier);
+
+    if(key > -1){
+        cart[key].qt += modalQt;
+    }else{
+        cart.push({
+            identifier,
+            id: pizzaJson[modalKey].id,
+            size,
+            qt: modalQt
+        })
+    }
+    
+    updateCart()
+    closeModal()
+    console.log(cart)
+    /*if(size == 0){
+        console.log('o tamanho é: (P)');
+    }else if(size == 1){
+        console.log('o tamanho é: (M)');
+    }else if(size == 2){
+        console.log('o tamanho é: (G)');
+    }
+    
+    //Quantas Pizzas?
+    console.log(modalQt +' pizzas')
+
+    //total unitario
+    let Subtotal = modalQt * pizzaValue
+    console.log(`Subtotal unitario: R$ ${Subtotal.toFixed(2)}`)
+    console.log('pizza: '+ pizzaJson[modalKey].name)
+    //Qual a pizza?
+    //Qual o tamanho?*/
+    
+
+
+})
+
+function updateCart(){
+    c('.menu-openner span').innerHTML = cart.length; 
+    if(cart.length > 0){
+        c('aside').classList.add('show');
+        c('.cart').innerHTML = '';
+
+        let subtotal = 0;
+        let total = 0;
+        let desconto = 0;
+
+        for(let i in cart){
+            let pizzaItem = pizzaJson.find((item)=>item.id == cart[i].id);
+            let cartItem = c('.models .cart--item').cloneNode(true);
+
+            subtotal += pizzaItem.price * cart[i].qt;
+
+            let pizzaSizeName;
+            switch (cart[i].size) {
+                case 0:
+                    pizzaSizeName = 'P';
+                    break;
+                case 1:
+                    pizzaSizeName = 'M';
+                    break;
+                case 2:
+                    pizzaSizeName = 'G';
+                    break;
+                default:
+                    break;
+            }
+
+            let pizzaName = `${pizzaItem.name} (${pizzaSizeName})`
+
+            cartItem.querySelector('img').src = pizzaItem.img;
+            cartItem.querySelector('.cart--item-nome').innerHTML = pizzaName;
+            cartItem.querySelector('.cart--item--qt').innerHTML = cart[i].qt;
+            cartItem.querySelector('.cart--item-qtmenos').addEventListener('click', ()=>{
+                if(cart[i].qt > 1){
+                    cart[i].qt--;
+                }else{
+                    cart.splice(i, 1)
+                }
+                updateCart();
+            });
+            cartItem.querySelector('.cart--item-qtmais').addEventListener('click', ()=>{
+                cart[i].qt++;
+                updateCart();
+            });
+            c('.cart').append(cartItem)
+            
+        }
+        desconto = subtotal * 0.1;
+        total = subtotal - desconto;
+
+        c('.subtotal span:last-child').innerHTML = `R$ ${subtotal.toFixed(2)}`;
+        c('.desconto span:last-child').innerHTML = `R$ ${desconto.toFixed(2)}`;
+        c('.total span:last-child').innerHTML = `R$ ${total.toFixed(2)}`
+
+    }else{
+        c('aside').classList.remove('show');
+        c('aside').style.left = '100vw';
+    }
+}
